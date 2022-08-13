@@ -29,7 +29,7 @@ getStat <- function(data1, data0){
 ############################## load a dataset: feature * sample
 load(file='~/Desktop/NetTDPcode/myDataAD.Rdata')
 load(file="~/Desktop/NetTDPcode/ADPermuID.RData")
-ExpDat <- t(ExpDatAD)
+ExpDat <- t(ExpDatAD[1:1000,])
 datC1 <- scale(ExpDat[rownames(ExpDat)=='Control',])
 datC2 <- scale(ExpDat[rownames(ExpDat)=='AD',])
 ```
@@ -59,18 +59,18 @@ G.abs.node <- rbind(Nodediff.Obs.abs,Nodediff.Perm.abs)
 G.abs.edge <- rbind(Edgediff.Obs.abs,Edgediff.Perm.abs)
 
 library(sumSome)
-myalpha <- 0.1
+myalpha <- 0.05
 ######## node-level inference
 G<-G.abs.node
 res.abs.node <- tdp(sumStats(G, alpha = myalpha))
-print(paste('lower (1-alpha)-confidence bound for the number of true discoveries in the set is',res.abs.node,'(abs.node)'))
+print(paste('lower (1-alpha)-confidence bound for the number of true discoveries in the set is',res.abs.node))
 ######## edge-level inference
 G<-G.abs.edge
 nEdge <- dim(G)[2]
 k <- ceiling(nEdge * 200 * myalpha)
 thr <- sort(as.vector(G), decreasing=TRUE)[k]   # threshold: k-th greatest statistic
-res.abs.edge <- tdp(sumStats(G, alpha = mylpha, truncFrom = thr, truncTo = 0))
-print(paste('lower (1-alpha)-confidence bound for the number of true discoveries in the set is',res.abs.edge,'(sign.abs.edge)'))
+res.abs.edge <- tdp(sumStats(G, alpha = myalpha, truncFrom = thr, truncTo = 0))
+print(paste('lower (1-alpha)-confidence bound for the number of true discoveries in the set is',res.abs.edge))
 
 ```
 
@@ -146,12 +146,13 @@ G<-G.abs.node
 for (i in 1:ncluster) {
   print(paste('i =', i))
   mysubset <- which(moduleColors==cluster[i])
-  res.abs <- sumStats(G,mysubset,alpha = 0.05)
+  res.abs <- sumStats(G,mysubset,alpha = myalpha)
   tdp.abs.node[i] <- tdp(res.abs) 
 }
 
+
 G<-G.abs.edge
-adj <- matrix(0,ngene,ngene)
+adj <- matrix(0,ngenes,ngenes)
 tdp.abs.edge <-  c()
 for (i in 1:ncluster) {
   print(paste('i =', i))
@@ -160,8 +161,8 @@ for (i in 1:ncluster) {
   adj.temp[mysubset,mysubset] <-1
   vec <- adj.temp[upper.tri(adj.temp)]
   mysubset.edge <- which(vec==1)
-  res.abs <- sumStats(G, S = mysubset.edge, alpha = alpha,truncFrom = thr, truncTo = 0)
-  tdp.abs.edge[i] <- tdp(res.abs) 
+  res.abs <- sumStats(G, S = mysubset.edge, alpha = myalpha,truncFrom = thr, truncTo = 0)
+  tdp.abs.edge[i] <- tdp(res.abs)
 }
 ```
 
